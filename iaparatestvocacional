@@ -4,6 +4,14 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics.pairwise import cosine_similarity
+import os  # Importa la librería os para manipular rutas de archivos
+
+# Define la ruta de la carpeta para la retroalimentación
+carpeta_retroalimentacion = 'retroalimentacion'
+
+# Asegúrate de que la carpeta exista; si no, créala
+if not os.path.exists(carpeta_retroalimentacion):
+    os.makedirs(carpeta_retroalimentacion)
 
 # Definir las preguntas y respuestas de muestra
 preguntas = [
@@ -84,10 +92,51 @@ carreras_tec_tijuana = [
  "Ingeniería en Sistemas Computacionales",
  "Ingeniería en Tecnologías de la Información y Comunicación",
  "Ingeniería Industrial",
- "Ingeniería Química"
+ "Ingeniería Química",
+ "ingenieria-en-sistemas-computacionales",
+ "licenciatura-en-administracion-de-empresas",
+ "Administración",
+ "Arquitectura",
+ "Contador Público",
+ "Ingeniería Bioquímica",
+ "Ingeniería Civil",
+ "Ingeniería Electromecánica",
+ "Ingeniería Electrónica",
+ "Ingeniería en Gestión Empresarial",
+ "Ingeniería en Logística",
+ "Ingeniería en Nanotecnología",
+ "Ingeniería en Sistemas Computacionales",
+ "Ingeniería en Tecnologías de la Información y Comunicación",
+ "Ingeniería Industrial",
+ "Ingeniería Química",
+ "ingenieria-en-sistemas-computacionales",
+ "licenciatura-en-administracion-de-empresas",
+ "Administración",
+ "Arquitectura",
+ "Contador Público",
+ "Ingeniería Bioquímica",
+ "Ingeniería Civil",
+ "Ingeniería Electromecánica",
+ "Ingeniería Electrónica",
+ "Ingeniería en Gestión Empresarial",
+ "Ingeniería en Logística",
+ "Ingeniería en Nanotecnología",
+ "Ingeniería en Sistemas Computacionales",
+ "Ingeniería en Tecnologías de la Información y Comunicación",
+ "Ingeniería Industrial",
+ "Ingeniería Química",
+ "ingenieria-en-sistemas-computacionales",
+ "licenciatura-en-administracion-de-empresas",
+"ingenieria-en-sistemas-computacionales",
+"licenciatura-en-administracion-de-empresas",
+"Administración",
+"Arquitectura",
+"Contador Público",
+"Ingeniería Bioquímica",
+
+
     # ... (otras carreras) ...
 ]
-
 # Crear una base de datos de características de carrera (como se mencionó anteriormente)
 caracteristicas_carrera ={
     "Administración": [
@@ -248,7 +297,6 @@ caracteristicas_carrera ={
     ]
 }
 
-
 # Crear un DataFrame para los datos
 data = pd.DataFrame({'Pregunta': preguntas, 'Carrera': carreras_tec_tijuana})
 
@@ -269,18 +317,38 @@ for pregunta in preguntas:
     respuesta = input(f"{pregunta} (Si/No/Quiza/Me es indiferente): ").strip().lower()
     respuestas_usuario.append(respuesta)
 
-nuevas_respuestas_tfidf = vectorizer.transform(respuestas_usuario)
+# Verificar que la longitud de preguntas y respuestas_usuario sea la misma
+if len(preguntas) != len(respuestas_usuario):
+    print("El número de respuestas proporcionadas no coincide con el número de preguntas.")
+else:
+    # Continuar con el cálculo de similitud y recomendación de carreras
+    nuevas_respuestas_tfidf = vectorizer.transform(respuestas_usuario)
 
-# Calcular la similitud entre las respuestas del usuario y las características de carrera
-similitud_carreras = {}
-for carrera, caracteristicas in caracteristicas_carrera.items():
-    similitud = cosine_similarity(nuevas_respuestas_tfidf, vectorizer.transform(caracteristicas))
-    similitud_carreras[carrera] = similitud.mean()
+    # Calcular la similitud entre las respuestas del usuario y las características de carrera
+    similitud_carreras = {}
+    for carrera, caracteristicas in caracteristicas_carrera.items():
+        similitud = cosine_similarity(nuevas_respuestas_tfidf, vectorizer.transform(caracteristicas))
+        similitud_carreras[carrera] = similitud.mean()
 
-# Ordenar las carreras por similitud en orden descendente
-carreras_recomendadas = sorted(similitud_carreras.keys(), key=lambda x: similitud_carreras[x], reverse=True)
+    # Ordenar las carreras por similitud en orden descendente
+    carreras_recomendadas = sorted(similitud_carreras.keys(), key=lambda x: similitud_carreras[x], reverse=True)
 
-# Mostrar las carreras recomendadas
-print("\nCarreras recomendadas:")
-for carrera in carreras_recomendadas:
-    print(carrera, "- Similitud:", similitud_carreras[carrera])
+    # Mostrar las carreras recomendadas
+    print("\nCarreras recomendadas:")
+    for carrera in carreras_recomendadas:
+        print(carrera, "- Similitud:", similitud_carreras[carrera])
+
+    # Solicitar retroalimentación del usuario y almacenarla
+    retroalimentacion = input("¿Cómo fue la recomendación? (1 = Muy útil, 2 = Útil, 3 = No útil): ")
+
+    # Almacenar la pregunta, respuesta generada, calificación y retroalimentación en un DataFrame
+    data_retroalimentacion = pd.DataFrame({
+        'Pregunta': preguntas,
+        'Respuesta_IA': respuestas_usuario,
+        'Calificación_IA': [similitud_carreras[carrera] for carrera in carreras_recomendadas],
+        'Retroalimentacion': retroalimentacion
+    })
+
+    # Guardar la retroalimentación en un archivo CSV en la carpeta de retroalimentación
+    ruta_archivo_csv = os.path.join(carpeta_retroalimentacion, 'retroalimentacion.csv')
+    data_retroalimentacion.to_csv(ruta_archivo_csv, index=False)
