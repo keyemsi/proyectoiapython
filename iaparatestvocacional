@@ -338,17 +338,4 @@ else:
     for carrera in carreras_recomendadas:
         print(carrera, "- Similitud:", similitud_carreras[carrera])
 
-    # Solicitar retroalimentación del usuario y almacenarla
-    retroalimentacion = input("¿Cómo fue la recomendación? (1 = Muy útil, 2 = Útil, 3 = No útil): ")
 
-    # Almacenar la pregunta, respuesta generada, calificación y retroalimentación en un DataFrame
-    data_retroalimentacion = pd.DataFrame({
-        'Pregunta': preguntas,
-        'Respuesta_IA': respuestas_usuario,
-        'Calificación_IA': [similitud_carreras[carrera] for carrera in carreras_recomendadas],
-        'Retroalimentacion': retroalimentacion
-    })
-
-    # Guardar la retroalimentación en un archivo CSV en la carpeta de retroalimentación
-    ruta_archivo_csv = os.path.join(carpeta_retroalimentacion, 'retroalimentacion.csv')
-    data_retroalimentacion.to_csv(ruta_archivo_csv, index=False)
